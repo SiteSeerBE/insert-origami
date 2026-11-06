@@ -109,6 +109,7 @@ export function generateTemplate(inputs) {
     compartmentLength: compartment,
     lines,
     waste,
+    steps: foldingSteps(lines),
     measurements: {
       x: measure([0, sheetWidth, ...lines.flatMap((l) => [l.x1, l.x2])]),
       y: measure([0, sheetLength, ...lines.flatMap((l) => [l.y1, l.y2])]),
@@ -141,4 +142,41 @@ function positions(steps) {
     out[name] = at;
   }
   return out;
+}
+
+function foldingSteps(lines) {
+  const ids = (keep) => lines.filter(keep).map((l) => l.id);
+  const isFold = (l) => l.kind !== 'cut';
+  return [
+    {
+      title: 'Mark the lines',
+      text: 'On the side that becomes the outside of the Insert, mark every measurement along the top and left edges, then draw each line straight across with a ruler.',
+      lineIds: ids(() => true),
+    },
+    {
+      title: 'Score every fold',
+      text: 'Run a bone folder or blunt knife along every Valley and Mountain Fold against a ruler, so the paper folds crisply where you want it.',
+      lineIds: ids(isFold),
+    },
+    {
+      title: 'Cut and remove the waste',
+      text: 'Cut along every solid line and remove the hatched waste. The Insert stays one piece.',
+      lineIds: ids((l) => l.kind === 'cut'),
+    },
+    {
+      title: 'Fold the End Walls',
+      text: 'At each end, fold the Mountain Fold so the wall rises from the floor, then fold both Valley Folds so the paper runs 5 mm across the top and back down. The outer face stands on the table.',
+      lineIds: ids((l) => l.part === 'end-wall'),
+    },
+    {
+      title: 'Fold the Dividers',
+      text: 'Pinch each Divider up from the floor: Mountain Folds at its two bases, Valley Folds at its two top lines, so it stands as a 10 mm wide hollow ridge.',
+      lineIds: ids((l) => l.part === 'divider'),
+    },
+    {
+      title: 'Fold the Side Walls',
+      text: 'Raise each Side Wall on its Mountain Fold beside Compartment 1, then fold both Valley Folds so it becomes a hollow 5 mm wall. Beside Compartments 2 and 3 it stands free, held by the End Walls and the box.',
+      lineIds: ids((l) => l.part === 'side-wall' && isFold(l)),
+    },
+  ];
 }

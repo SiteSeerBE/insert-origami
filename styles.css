@@ -75,3 +75,53 @@ main { display: grid; gap: 24px; grid-template-columns: minmax(240px, 300px) 1fr
 .style-toggle { border: 0; padding: 0; margin: 0 0 8px; display: flex; flex-wrap: wrap; gap: 6px 18px; }
 .style-toggle legend { font-weight: 600; padding: 0; margin-bottom: 4px; }
 .style-toggle label { display: inline-flex; align-items: center; gap: 6px; }
+
+.print-only { display: none; }
+button.print { font: inherit; padding: 6px 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--panel); cursor: pointer; margin-bottom: 12px; }
+button.print:hover { border-color: var(--fg); }
+
+.instructions { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 24px; }
+@media (max-width: 760px) { .instructions { grid-template-columns: 1fr; } }
+.instructions h2 { font-size: 1.1em; margin: 20px 0 4px; }
+.materials { padding-left: 1.2em; margin: 0; }
+.steps { padding-left: 1.4em; margin: 0; }
+.steps li { padding: 6px 8px; border-radius: 6px; cursor: default; }
+.steps li:hover, .steps li:focus { background: #fdf0e6; outline: none; }
+.steps strong { display: block; }
+
+.drawing svg.highlighting .line, .drawing svg.highlighting .waste { opacity: 0.18; }
+.drawing svg.highlighting .line.highlight { opacity: 1; stroke-width: 3.5; }
+
+@page { size: A4 portrait; margin: 10mm; }
+@media print {
+  :root { font-size: 8.5pt; background: #fff; }
+  body { max-width: none; padding: 0; background: #fff; }
+  .screen-only { display: none !important; }
+  .print-only { display: inline; }
+  h1 { font-size: 13pt; margin: 0 0 2mm; }
+  main { display: block; }
+  .result { display: grid; grid-template-columns: 105mm 1fr; column-gap: 6mm; align-items: start; }
+  .sheet-size { grid-column: 1 / -1; margin: 0 0 2mm; font-size: 10pt; }
+  .drawing { grid-column: 1; grid-row: 2; border: 0; padding: 0; }
+  .drawing svg { max-height: 135mm; }
+  .legend { grid-column: 1; grid-row: 3; margin: 1mm 0; }
+  .marked-side { grid-column: 1; grid-row: 4; margin: 0; }
+  .measurements { grid-column: 1; grid-row: 5; }
+  .instructions { grid-column: 2; grid-row: 2 / span 4; }
+  .measurement-tables input { width: 2.6mm; height: 2.6mm; margin: 0; }
+  .measurement-tables { display: block; }
+  .measurement-tables table { display: block; width: 100%; margin-bottom: 2mm; }
+  .measurement-tables caption { display: block; }
+  .measurement-tables tbody { display: grid; grid-template-columns: repeat(3, 1fr); column-gap: 4mm; }
+  .measurement-tables tr { display: flex; justify-content: space-between; border-bottom: 0.2mm solid #ccc; }
+  .measurement-tables td { border: 0; }
+  .instructions { display: block; }
+  .instructions h2, .measurements h2 { font-size: 9.5pt; margin: 2mm 0 1mm; }
+  .steps li { padding: 0.6mm 0; }
+  .measurement-tables { gap: 4mm; }
+  .measurement-tables table { min-width: 0; }
+  .measurement-tables td { padding: 0.2mm 3mm 0.2mm 0; }
+  .line-valley { stroke: #000; }
+  .line-mountain { stroke: #000; }
+  .marked-side, .hint { color: #333; }
+}

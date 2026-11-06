@@ -64,9 +64,15 @@ function update() {
   result.hidden = !template.ok;
   invalid.hidden = template.ok;
   if (!template.ok) return;
-  sheetSize.textContent = `${fmt(template.sheet.width)} × ${fmt(template.sheet.length)} mm`;
+  const size = `${fmt(template.sheet.width)} × ${fmt(template.sheet.length)} mm`;
+  sheetSize.textContent = size;
+  document.getElementById('materials-sheet').textContent = size;
+  const { length, width, insertHeight, paperThickness } = readInputs();
+  document.getElementById('print-summary').textContent =
+    `for a ${length} × ${width} mm box, ${insertHeight} mm high, ${paperThickness} mm paper`;
   drawing.replaceChildren(renderTemplate(template, { style }));
   explainer.textContent = EXPLAIN[style];
+  fillSteps(template.steps);
   fillTable('measure-x', template.measurements.x);
   fillTable('measure-y', template.measurements.y);
 }
@@ -90,4 +96,27 @@ function fillTable(id, measurements) {
     return tr;
   });
   document.getElementById(id).replaceChildren(...rows);
+}
+
+function fillSteps(steps) {
+  const items = steps.map((step) => {
+    const li = document.createElement('li');
+    li.tabIndex = 0;
+    const title = document.createElement('strong');
+    title.textContent = step.title;
+    li.append(title, step.text);
+    const highlight = (on) => {
+      const svg = drawing.querySelector('svg');
+      svg.classList.toggle('highlighting', on);
+      for (const id of step.lineIds) {
+        svg.querySelector(`[data-line="${id}"]`)?.classList.toggle('highlight', on);
+      }
+    };
+    li.addEventListener('mouseenter', () => highlight(true));
+    li.addEventListener('mouseleave', () => highlight(false));
+    li.addEventListener('focus', () => highlight(true));
+    li.addEventListener('blur', () => highlight(false));
+    return li;
+  });
+  document.getElementById('steps').replaceChildren(...items);
 }

@@ -248,3 +248,30 @@ test('Chained Measurements always add up exactly to the Baseline Measurements', 
     }
   }
 });
+
+test('Folding steps come in a fixed order', () => {
+  assert.deepEqual(example().steps.map((s) => s.title), [
+    'Mark the lines', 'Score every fold', 'Cut and remove the waste',
+    'Fold the End Walls', 'Fold the Dividers', 'Fold the Side Walls',
+  ]);
+});
+
+test('Every line belongs to a step, and every step has lines', () => {
+  for (const paperThickness of [0, 0.35]) {
+    const t = generateTemplate(input({ paperThickness }));
+    const used = new Set(t.steps.flatMap((s) => s.lineIds));
+    for (const line of t.lines) assert.ok(used.has(line.id), `line ${line.id} is in no step`);
+    for (const step of t.steps) assert.ok(step.lineIds.length > 0, `${step.title} has no lines`);
+  }
+});
+
+test('Scoring covers every fold and cutting covers every Cut', () => {
+  const t = example();
+  const ids = (title) => new Set(t.steps.find((s) => s.title === title).lineIds);
+  const score = ids('Score every fold');
+  const cut = ids('Cut and remove the waste');
+  for (const line of t.lines) {
+    assert.equal(score.has(line.id), isFold(line), `scoring and line ${line.id}`);
+    assert.equal(cut.has(line.id), line.kind === 'cut', `cutting and line ${line.id}`);
+  }
+});

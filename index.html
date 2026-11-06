@@ -9,11 +9,11 @@
 <body>
   <header>
     <h1>Insert Origami</h1>
-    <p class="lede">Turn one Sheet of paper or card into a three-Compartment board game Insert, with no glue.</p>
+    <p class="lede screen-only">Turn one Sheet of paper or card into a three-Compartment board game Insert, with no glue.</p>
   </header>
 
   <main>
-    <section class="inputs" aria-label="Box and paper">
+    <section class="inputs screen-only" aria-label="Box and paper">
       <form id="inputs" novalidate>
         <figure class="length-sketch" aria-label="Top view of the box: the Length is the side the three Compartments run along">
           <svg viewBox="0 0 180 112" aria-hidden="true">
@@ -59,7 +59,8 @@
     </section>
 
     <section id="result" class="result">
-      <p class="sheet-size">Sheet: <strong id="sheet-size"></strong></p>
+      <p class="sheet-size">Sheet: <strong id="sheet-size"></strong> <span class="print-only" id="print-summary"></span></p>
+      <button type="button" class="print screen-only" onclick="window.print()">Print a reference page (A4)</button>
       <div id="drawing" class="drawing"></div>
       <div class="legend" aria-label="Line legend">
         <span><svg viewBox="0 0 40 6" aria-hidden="true"><line class="line line-cut" x1="0" y1="3" x2="40" y2="3"/></svg> Cut</span>
@@ -67,9 +68,25 @@
         <span><svg viewBox="0 0 40 6" aria-hidden="true"><line class="line line-mountain" x1="0" y1="3" x2="40" y2="3"/></svg> Mountain Fold</span>
         <span><span class="legend-waste" aria-hidden="true"></span> Waste: cut away</span>
       </div>
+      <div class="instructions">
+        <section aria-labelledby="materials-title">
+          <h2 id="materials-title">Materials</h2>
+          <ul class="materials">
+            <li>A Sheet of exactly <strong id="materials-sheet"></strong>, cut from larger paper or card</li>
+            <li>A long ruler and a pencil</li>
+            <li>A craft knife and cutting mat</li>
+            <li>A bone folder or blunt knife for scoring</li>
+          </ul>
+        </section>
+        <section aria-labelledby="steps-title">
+          <h2 id="steps-title">Steps</h2>
+          <p class="hint screen-only">Hover a step to highlight its lines.</p>
+          <ol id="steps" class="steps"></ol>
+        </section>
+      </div>
       <section class="measurements" aria-labelledby="measurements-title">
         <h2 id="measurements-title">Measurements</h2>
-        <fieldset class="style-toggle">
+        <fieldset class="style-toggle screen-only">
           <legend>Measure</legend>
           <label><input type="radio" name="measurementStyle" value="baseline" checked> From the corner <span class="hint">(Baseline, more accurate)</span></label>
           <label><input type="radio" name="measurementStyle" value="chained"> From the previous line <span class="hint">(Chained)</span></label>
