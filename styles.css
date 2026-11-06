@@ -71,3 +71,7 @@ main { display: grid; gap: 24px; grid-template-columns: minmax(240px, 300px) 1fr
 .measurement-tables td { padding: 3px 10px 3px 0; border-bottom: 1px solid var(--border); font-variant-numeric: tabular-nums; }
 .measurement-tables td.mm { text-align: right; font-weight: 600; }
 .measurement-tables label { display: inline-flex; gap: 6px; align-items: center; }
+
+.style-toggle { border: 0; padding: 0; margin: 0 0 8px; display: flex; flex-wrap: wrap; gap: 6px 18px; }
+.style-toggle legend { font-weight: 600; padding: 0; margin-bottom: 4px; }
+.style-toggle label { display: inline-flex; align-items: center; gap: 6px; }

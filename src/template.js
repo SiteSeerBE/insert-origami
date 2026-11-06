@@ -118,13 +118,18 @@ export function generateTemplate(inputs) {
 
 // Baseline Measurements: each distinct position, at full precision and rounded
 // to whole mm for display. Only the final position is rounded, so rounding
-// never accumulates.
+// never accumulates. Chained Measurements are differences of the rounded
+// Baseline values, so the chain always adds up to them exactly.
 function measure(values) {
   const distinct = [];
   for (const v of [...values].sort((a, b) => a - b)) {
     if (!distinct.length || v - distinct[distinct.length - 1] > 1e-9) distinct.push(v);
   }
-  return distinct.map((position) => ({ position, display: Math.round(position) }));
+  return distinct.map((position, i) => {
+    const display = Math.round(position);
+    const previous = i === 0 ? 0 : Math.round(distinct[i - 1]);
+    return { position, display, chained: display - previous };
+  });
 }
 
 // Turns [name, distance from previous] pairs into absolute positions by name.

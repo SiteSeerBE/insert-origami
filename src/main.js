@@ -7,6 +7,38 @@ const drawing = document.getElementById('drawing');
 const result = document.getElementById('result');
 const invalid = document.getElementById('invalid');
 const FIELDS = ['length', 'width', 'insertHeight', 'paperThickness'];
+const STYLE_KEY = 'insert-origami.measurementStyle';
+const explainer = document.getElementById('measurements-explainer');
+const EXPLAIN = {
+  baseline: "Every position is measured from the Sheet's top-left corner. Mark them along the top and left edges, then draw each line straight across.",
+  chained: 'Each distance is measured from the previous mark, starting at the top-left corner. Mark them one after another along the top and left edges, then draw each line straight across.',
+};
+
+function loadStyle() {
+  try {
+    return localStorage.getItem(STYLE_KEY) === 'chained' ? 'chained' : 'baseline';
+  } catch {
+    return 'baseline';
+  }
+}
+
+function saveStyle(style) {
+  try {
+    localStorage.setItem(STYLE_KEY, style);
+  } catch {
+    // Storage blocked: the choice simply isn't remembered.
+  }
+}
+
+let style = loadStyle();
+for (const radio of document.querySelectorAll('input[name="measurementStyle"]')) {
+  radio.checked = radio.value === style;
+  radio.addEventListener('change', () => {
+    style = radio.value;
+    saveStyle(style);
+    update();
+  });
+}
 
 function showErrors(errors) {
   for (const name of FIELDS) {
@@ -33,7 +65,8 @@ function update() {
   invalid.hidden = template.ok;
   if (!template.ok) return;
   sheetSize.textContent = `${fmt(template.sheet.width)} × ${fmt(template.sheet.length)} mm`;
-  drawing.replaceChildren(renderTemplate(template));
+  drawing.replaceChildren(renderTemplate(template, { style }));
+  explainer.textContent = EXPLAIN[style];
   fillTable('measure-x', template.measurements.x);
   fillTable('measure-y', template.measurements.y);
 }
@@ -48,11 +81,11 @@ function fillTable(id, measurements) {
     const label = document.createElement('label');
     const box = document.createElement('input');
     box.type = 'checkbox';
-    label.append(box, `Mark ${i + 1}`);
+    label.append(box, i === 0 ? 'Corner' : `Mark ${i}`);
     tick.append(label);
     const mm = document.createElement('td');
     mm.className = 'mm';
-    mm.textContent = `${m.display} mm`;
+    mm.textContent = style === 'chained' ? (i === 0 ? 'corner' : `+${m.chained} mm`) : `${m.display} mm`;
     tr.append(tick, mm);
     return tr;
   });

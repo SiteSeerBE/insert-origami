@@ -225,3 +225,26 @@ test('Insert Height must exceed the paper thickness', () => {
   assert.ok(errorsFor({ insertHeight: 0.5, paperThickness: 0.5 }).insertHeight);
   assert.equal(generateTemplate(input({ insertHeight: 0.6, paperThickness: 0.5 })).ok, true);
 });
+
+test('Chained Measurements give each distance from the previous line', () => {
+  const { measurements } = example();
+  assert.deepEqual(measurements.x.map((m) => m.chained), [0, 40, 5, 40, 190, 40, 5, 40]);
+});
+
+test('Chained Measurements always add up exactly to the Baseline Measurements', () => {
+  const sizes = [
+    { length: 290, width: 213.7, insertHeight: 37.3, paperThickness: 0.35 },
+    { length: 271.3, width: 271.3, insertHeight: 22.2, paperThickness: 0.27 },
+    { length: 99.9, width: 45.45, insertHeight: 18.75, paperThickness: 0.15 },
+  ];
+  for (const size of sizes) {
+    const t = generateTemplate(size);
+    for (const axis of [t.measurements.x, t.measurements.y]) {
+      let total = 0;
+      for (const m of axis) {
+        total += m.chained;
+        assert.equal(total, m.display);
+      }
+    }
+  }
+});

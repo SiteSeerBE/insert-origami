@@ -69,7 +69,12 @@
       </div>
       <section class="measurements" aria-labelledby="measurements-title">
         <h2 id="measurements-title">Measurements</h2>
-        <p class="hint" id="measurements-explainer">Every position is measured from the Sheet's top-left corner. Mark them along the top and left edges, then draw each line straight across.</p>
+        <fieldset class="style-toggle">
+          <legend>Measure</legend>
+          <label><input type="radio" name="measurementStyle" value="baseline" checked> From the corner <span class="hint">(Baseline, more accurate)</span></label>
+          <label><input type="radio" name="measurementStyle" value="chained"> From the previous line <span class="hint">(Chained)</span></label>
+        </fieldset>
+        <p class="hint" id="measurements-explainer"></p>
         <div class="measurement-tables">
           <table>
             <caption>Along the top edge (across the Width)</caption>
