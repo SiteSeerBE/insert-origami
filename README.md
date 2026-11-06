@@ -65,3 +65,7 @@ The site is static and can be served from GitHub Pages: deploy from the `main` b
 
 - **Project manager:** Iwan Lemmens
 - **Developer:** Claude (Claude Opus 5.5 by Anthropic, working in Claude Code)
+
+## License
+
+[MIT](LICENSE) © 2026 Iwan Lemmens
