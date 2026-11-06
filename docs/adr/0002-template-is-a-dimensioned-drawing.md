@@ -1,6 +1,6 @@
 # The Template is a dimensioned drawing, not a 1:1 printout
 
-A Sheet is roughly (Length + 8 × Insert Height) × (Width + 4 × Insert Height), e.g. 610 × 450 mm for a typical 290 × 290 box. That rarely fits on A4 or Letter. So the Template is a drawing that is not to scale. It gives every line's position in whole millimetres, and the user copies those measurements with a ruler onto a Sheet they cut from larger stock. That is why there is no SVG/PDF download, why displayed measurements are rounded to 1mm (with Chained Measurements derived from rounded Baseline Measurements so rounding never adds up), and why the user can switch between Baseline and Chained Measurements.
+A Sheet is roughly (Length + 8 × Insert Height) × (Width + 4 × Insert Height) for three Compartments, e.g. 610 × 450 mm for a typical 290 × 290 box; each further Compartment adds another 2 × Insert Height. That rarely fits on A4 or Letter. So the Template is a drawing that is not to scale. It gives every line's position in whole millimetres, and the user copies those measurements with a ruler onto a Sheet they cut from larger stock. That is why there is no SVG/PDF download, why displayed measurements are rounded to 1mm (with Chained Measurements derived from rounded Baseline Measurements so rounding never adds up), and why the user can switch between Baseline and Chained Measurements.
 
 ## Considered Options
 

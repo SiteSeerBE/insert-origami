@@ -9,25 +9,15 @@
 <body>
   <header>
     <h1>Insert Origami</h1>
-    <p class="lede screen-only">Turn one Sheet of paper or card into a three-Compartment board game Insert, with no glue.</p>
+    <p class="lede screen-only">Turn one Sheet of paper or card into a board game Insert with as many Compartments as you need, with no glue.</p>
   </header>
 
   <main>
     <section class="inputs screen-only" aria-label="Box and paper">
       <form id="inputs" novalidate>
-        <figure class="length-sketch" aria-label="Top view of the box: the Length is the side the three Compartments run along">
-          <svg viewBox="0 0 180 112" aria-hidden="true">
-            <rect class="sk-box" x="8" y="8" width="100" height="96" rx="2"/>
-            <line class="sk-div" x1="8" y1="40" x2="108" y2="40"/>
-            <line class="sk-div" x1="8" y1="72" x2="108" y2="72"/>
-            <text class="sk-num" x="58" y="28">1</text>
-            <text class="sk-num" x="58" y="60">2</text>
-            <text class="sk-num" x="58" y="92">3</text>
-            <line class="sk-dim" x1="122" y1="8" x2="122" y2="104" marker-start="url(#sk-arrow)" marker-end="url(#sk-arrow)"/>
-            <text class="sk-label" x="128" y="60">Length</text>
-            <defs><marker id="sk-arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z"/></marker></defs>
-          </svg>
-          <figcaption>Top view. The Compartments run along the <strong>Length</strong>; pick whichever side of your box you want them along.</figcaption>
+        <figure class="length-sketch" aria-label="Top view of the box: the Compartments run along the Length">
+          <svg id="length-sketch" viewBox="0 0 180 112" aria-hidden="true"></svg>
+          <figcaption>Top view. The Compartments run along the <strong>Length</strong>; pick whichever side of your box you want them along. Shaded: Compartment 1, where the Side Walls are fixed.</figcaption>
         </figure>
         <div class="field">
           <label for="length">Length <span class="unit">mm, box interior</span></label>
@@ -51,11 +41,21 @@
           <p class="hint" id="paperThickness-hint">Typical: 80 gsm paper ≈ 0.1 mm, 300 gsm card ≈ 0.35 mm, grey board ≈ 1 mm or more.</p>
           <p class="error" id="paperThickness-error" aria-live="polite"></p>
         </div>
+        <fieldset id="compartments" class="compartments" aria-describedby="compartments-hint">
+          <legend>Compartments <span class="unit">mm, clear inside length</span></legend>
+          <p class="remaining" id="remaining" aria-live="polite"></p>
+          <p class="hint" id="compartments-hint">Compartment 1 is the only one the Side Walls are fixed to: make it your longest for a sturdier Insert.</p>
+          <p class="hint" id="equal-split-hint">Split evenly until you change a length.</p>
+          <ol id="compartment-rows" class="compartment-rows"></ol>
+          <button type="button" id="add-compartment" class="add-compartment">Add Compartment</button>
+          <p class="note" id="compartment-advice" aria-live="polite" hidden>Compartment 1 isn't your longest. That works, but the Insert is sturdier if it is.</p>
+          <p class="hint" id="compartments-disabled">Enter valid box values first.</p>
+        </fieldset>
       </form>
     </section>
 
     <section id="invalid" class="invalid" hidden>
-      <p>Fix the highlighted values to see your Template.</p>
+      <p id="invalid-message">Fix the highlighted values to see your Template.</p>
     </section>
 
     <section id="result" class="result">
