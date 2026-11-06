@@ -15,23 +15,47 @@
   <main>
     <section class="inputs" aria-label="Box and paper">
       <form id="inputs" novalidate>
+        <figure class="length-sketch" aria-label="Top view of the box: the Length is the side the three Compartments run along">
+          <svg viewBox="0 0 180 112" aria-hidden="true">
+            <rect class="sk-box" x="8" y="8" width="100" height="96" rx="2"/>
+            <line class="sk-div" x1="8" y1="40" x2="108" y2="40"/>
+            <line class="sk-div" x1="8" y1="72" x2="108" y2="72"/>
+            <text class="sk-num" x="58" y="28">1</text>
+            <text class="sk-num" x="58" y="60">2</text>
+            <text class="sk-num" x="58" y="92">3</text>
+            <line class="sk-dim" x1="122" y1="8" x2="122" y2="104" marker-start="url(#sk-arrow)" marker-end="url(#sk-arrow)"/>
+            <text class="sk-label" x="128" y="60">Length</text>
+            <defs><marker id="sk-arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z"/></marker></defs>
+          </svg>
+          <figcaption>Top view. The Compartments run along the <strong>Length</strong>; pick whichever side of your box you want them along.</figcaption>
+        </figure>
         <div class="field">
-          <label for="length">Length <span class="unit">mm</span></label>
-          <input id="length" name="length" type="number" inputmode="decimal" step="any" value="290">
+          <label for="length">Length <span class="unit">mm, box interior</span></label>
+          <input id="length" name="length" type="number" inputmode="decimal" step="any" value="290" aria-describedby="length-error">
+          <p class="error" id="length-error" aria-live="polite"></p>
         </div>
         <div class="field">
-          <label for="width">Width <span class="unit">mm</span></label>
-          <input id="width" name="width" type="number" inputmode="decimal" step="any" value="290">
+          <label for="width">Width <span class="unit">mm, box interior</span></label>
+          <input id="width" name="width" type="number" inputmode="decimal" step="any" value="290" aria-describedby="width-error">
+          <p class="error" id="width-error" aria-live="polite"></p>
         </div>
         <div class="field">
           <label for="insertHeight">Insert Height <span class="unit">mm</span></label>
-          <input id="insertHeight" name="insertHeight" type="number" inputmode="decimal" step="any" value="40">
+          <input id="insertHeight" name="insertHeight" type="number" inputmode="decimal" step="any" value="40" aria-describedby="insertHeight-hint insertHeight-error">
+          <p class="hint" id="insertHeight-hint">Not the box height: subtract room for the board, rulebook and lid that go on top.</p>
+          <p class="error" id="insertHeight-error" aria-live="polite"></p>
         </div>
         <div class="field">
           <label for="paperThickness">Paper thickness <span class="unit">mm</span></label>
-          <input id="paperThickness" name="paperThickness" type="number" inputmode="decimal" step="any" value="0.3">
+          <input id="paperThickness" name="paperThickness" type="number" inputmode="decimal" step="any" value="0.3" aria-describedby="paperThickness-hint paperThickness-error">
+          <p class="hint" id="paperThickness-hint">Typical: 80 gsm paper ≈ 0.1 mm, 300 gsm card ≈ 0.35 mm, grey board ≈ 1 mm or more.</p>
+          <p class="error" id="paperThickness-error" aria-live="polite"></p>
         </div>
       </form>
+    </section>
+
+    <section id="invalid" class="invalid" hidden>
+      <p>Fix the highlighted values to see your Template.</p>
     </section>
 
     <section id="result" class="result">

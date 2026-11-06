@@ -30,3 +30,19 @@ main { display: grid; gap: 24px; grid-template-columns: minmax(240px, 300px) 1fr
 .drawing svg { width: 100%; height: auto; max-height: 80vh; display: block; }
 
 .sheet-edge { fill: none; stroke: var(--line); stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+
+.hint { margin: 0; color: var(--muted); font-size: 0.88em; }
+.error { margin: 0; color: var(--error); font-size: 0.88em; }
+.error:empty { display: none; }
+.field input[aria-invalid="true"] { border-color: var(--error); outline-color: var(--error); }
+.invalid { color: var(--muted); border: 1px dashed var(--border); border-radius: 8px; padding: 16px; }
+
+.length-sketch { margin: 0 0 18px; }
+.length-sketch svg { width: 180px; display: block; }
+.length-sketch figcaption { color: var(--muted); font-size: 0.88em; }
+.sk-box { fill: var(--panel); stroke: var(--fg); stroke-width: 1.5; }
+.sk-div { stroke: var(--fg); stroke-width: 4; }
+.sk-num { font-size: 12px; fill: var(--muted); text-anchor: middle; }
+.sk-dim { stroke: var(--accent); stroke-width: 1.5; }
+.sk-label { font-size: 12px; fill: var(--accent); font-weight: 600; }
+#sk-arrow path { fill: var(--accent); }
