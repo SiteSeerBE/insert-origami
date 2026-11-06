@@ -2,7 +2,7 @@
 
 A small website that designs a paper or card **Insert** for a board game box. The Insert is made from one Sheet, with no glue, by cutting and folding only.
 
-Enter the box's interior Length and Width, the Insert Height you want, and the paper thickness, all in millimetres. The site then gives you:
+Enter the box's interior Length and Width, the Insert Height you want, and the paper thickness, all in millimetres. Then choose how many Compartments you want and the length of each one: the site shows the **Remaining Space** still to place, and the Template appears once it reaches 0. The site then gives you:
 
 - **The exact Sheet size** to cut from larger paper or card.
 - **A Template**: a dimensioned drawing of the Sheet showing every Cut, Valley Fold and Mountain Fold, with the Waste hatched.
@@ -12,11 +12,11 @@ Enter the box's interior Length and Width, the Insert Height you want, and the p
 
 ## The Insert
 
-The finished Insert has three equal Compartments along the box's Length:
+The finished Insert has one or more Compartments along the box's Length, each as long as you choose (at least 10 mm):
 
 - **Walls**: 5 mm thick, hollow Pleats around the edge.
 - **Dividers**: 10 mm thick Pleats raised from the floor.
-- **Side Walls**: fixed to the floor only beside the first Compartment, so the floor can pleat into Dividers while the Insert stays one piece.
+- **Side Walls**: fixed to the floor only beside the first Compartment, so the floor can pleat into Dividers while the Insert stays one piece. Make Compartment 1 your longest for the sturdiest Insert.
 
 The Insert's outer size matches what you enter exactly. Paper thickness is taken into account, so card folds to the right size too.
 
@@ -38,7 +38,7 @@ The site is plain HTML, CSS and JavaScript modules, with no framework, build ste
 
 | Path | What it holds |
 |---|---|
-| `src/template.js` | All the geometry, as one pure function `generateTemplate(inputs)`. It turns the four inputs into the Sheet size, lines, Waste, measurements and folding steps. |
+| `src/template.js` | All the geometry, as one pure function `generateTemplate(inputs)`. It turns the box values and Compartment Lengths into the Sheet size, lines, Waste, measurements and folding steps. |
 | `src/render.js` | Draws a Template as an SVG, with dimension labels. |
 | `src/main.js` | Connects the form, the drawing, the tables and the steps. |
 | `test/` | Tests that go through `generateTemplate` only. |

@@ -35,13 +35,33 @@ main { display: grid; gap: 24px; grid-template-columns: minmax(240px, 300px) 1fr
 .error { margin: 0; color: var(--error); font-size: 0.88em; }
 .error:empty { display: none; }
 .field input[aria-invalid="true"] { border-color: var(--error); outline-color: var(--error); }
+.compartments { border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px 12px; margin: 0; display: grid; gap: 8px; min-width: 0; }
+.compartments legend { font-weight: 600; padding: 0 4px; }
+.compartments[disabled] .compartment-rows, .compartments[disabled] .add-compartment { opacity: 0.45; }
+.remaining { margin: 0; padding: 6px 8px; border-radius: 6px; background: var(--bg); font-variant-numeric: tabular-nums; }
+.remaining:empty { display: none; }
+.remaining[data-state="filled"] { color: #166534; background: #ecfdf3; }
+.remaining[data-state="over"] { color: var(--error); background: #fef2f2; }
+.compartment-rows { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+.compartment-rows li { display: grid; grid-template-columns: 1fr auto auto; gap: 4px 6px; align-items: center; }
+.compartment-rows label { grid-column: 1 / -1; font-size: 0.92em; }
+.compartment-rows input { font: inherit; padding: 6px 8px; border: 1px solid var(--border); border-radius: 6px; background: var(--panel); width: 100%; min-width: 0; }
+.compartment-rows input[aria-invalid="true"] { border-color: var(--error); outline-color: var(--error); }
+.compartment-rows .error { grid-column: 1 / -1; }
+.compartments button { font: inherit; padding: 5px 10px; border: 1px solid var(--border); border-radius: 6px; background: var(--panel); cursor: pointer; }
+.compartments button:hover:not(:disabled) { border-color: var(--fg); }
+.compartments button:disabled { cursor: default; opacity: 0.4; }
+.add-compartment { justify-self: start; }
+.note { margin: 0; font-size: 0.88em; color: #92400e; }
+[hidden] { display: none !important; }
 .invalid { color: var(--muted); border: 1px dashed var(--border); border-radius: 8px; padding: 16px; }
 
 .length-sketch { margin: 0 0 18px; }
 .length-sketch svg { width: 180px; display: block; }
 .length-sketch figcaption { color: var(--muted); font-size: 0.88em; }
 .sk-box { fill: var(--panel); stroke: var(--fg); stroke-width: 1.5; }
-.sk-div { stroke: var(--fg); stroke-width: 4; }
+.sk-div { stroke: var(--fg); }
+.sk-fixed { fill: #fdf0e6; }
 .sk-num { font-size: 12px; fill: var(--muted); text-anchor: middle; }
 .sk-dim { stroke: var(--accent); stroke-width: 1.5; }
 .sk-label { font-size: 12px; fill: var(--accent); font-weight: 600; }

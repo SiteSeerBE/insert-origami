@@ -3,8 +3,28 @@
 
 const WALL_TOP = 5;
 const DIVIDER_TOP = 10;
+export const MIN_COMPARTMENT = 10;
+// Remaining Space within this much of 0 counts as filled, so decimals never get stuck.
+export const FILLED_TOLERANCE = 0.05;
 
+// The box fields. Compartment Lengths are a separate list: `compartments`.
 export const INPUT_FIELDS = ['length', 'width', 'insertHeight', 'paperThickness'];
+
+// The part of the Length not yet given to a Compartment, once both End Walls
+// and every Divider for this many Compartments are taken off.
+export function remainingSpace(length, compartments) {
+  const used = compartments.reduce((sum, c) => sum + c, 0);
+  return length - 2 * WALL_TOP - DIVIDER_TOP * (compartments.length - 1) - used;
+}
+
+// n Compartment Lengths that fill the Length evenly, each to 0.1 mm, with the
+// last one taking the rounding difference so the Remaining Space is exactly 0.
+export function equalSplit(length, n) {
+  const total = remainingSpace(length, Array(n).fill(0));
+  const each = Math.round((total / n) * 10) / 10;
+  const last = total - each * (n - 1);
+  return [...Array(n - 1).fill(each), Number(last.toFixed(6))];
+}
 
 function validate(inputs) {
   const errors = {};
@@ -12,8 +32,9 @@ function validate(inputs) {
     if (!Number.isFinite(inputs[field])) errors[field] = 'Enter a number.';
   }
   const { length, width, insertHeight, paperThickness } = inputs;
-  if (!errors.length && length <= 30) {
-    errors.length = 'Must be more than 30 mm: two 5 mm End Walls and two 10 mm Dividers need that much.';
+  const minLength = 2 * WALL_TOP + MIN_COMPARTMENT;
+  if (!errors.length && length < minLength) {
+    errors.length = `Must be at least ${minLength} mm: two 5 mm End Walls and one ${MIN_COMPARTMENT} mm Compartment need that much.`;
   }
   if (!errors.width && width <= 10) {
     errors.width = 'Must be more than 10 mm: the two Side Walls are 5 mm each.';
@@ -26,6 +47,25 @@ function validate(inputs) {
   if (!errors.paperThickness && (paperThickness < 0 || paperThickness >= 2)) {
     errors.paperThickness = 'Must be between 0 and 2 mm.';
   }
+
+  const compartments = inputs.compartments ?? [];
+  if (!compartments.length) {
+    errors.compartmentCount = 'An Insert needs at least one Compartment.';
+  }
+  const compartmentErrors = compartments.map((c) => {
+    if (!Number.isFinite(c)) return 'Enter a number.';
+    if (c < MIN_COMPARTMENT) return `Must be at least ${MIN_COMPARTMENT} mm.`;
+    return null;
+  });
+  if (compartmentErrors.some(Boolean)) errors.compartments = compartmentErrors;
+  if (!errors.length && !errors.compartments && !errors.compartmentCount) {
+    const remaining = remainingSpace(length, compartments);
+    if (remaining > FILLED_TOLERANCE) {
+      errors.remainingSpace = `${remaining.toFixed(1)} mm of the Length is still to place.`;
+    } else if (remaining < -FILLED_TOLERANCE) {
+      errors.remainingSpace = `The Compartments are ${(-remaining).toFixed(1)} mm too long for the Length.`;
+    }
+  }
   return errors;
 }
 
@@ -34,7 +74,11 @@ export function generateTemplate(inputs) {
   if (Object.keys(errors).length) return { ok: false, errors };
 
   const { length, width, insertHeight: h, paperThickness: t } = inputs;
-  const compartment = (length - 2 * WALL_TOP - 2 * DIVIDER_TOP) / 3;
+  // The last Compartment absorbs the tiny Remaining Space the tolerance allows,
+  // so the Insert's outer size is exactly the Length.
+  const compartments = [...inputs.compartments];
+  compartments[compartments.length - 1] += remainingSpace(length, compartments);
+  const dividers = compartments.length - 1;
 
   // Flat length of each panel. Paper is conserved along its mid-surface, so
   // with the Insert's outer size fixed every 90-degree fold saves a little
@@ -43,15 +87,18 @@ export function generateTemplate(inputs) {
   const wallTop = WALL_TOP - t;
   const innerFace = h - t; // between the floor and the top layer
   const dividerTop = DIVIDER_TOP - t;
-  const floorLength = compartment + t;
+  const floorLength = (i) => compartments[i] + t;
   const floorWidth = width - 2 * WALL_TOP + t;
 
   // Fold positions along the Length (y), from the top edge of the Sheet.
+  // Divider d follows Compartment d (both counted from 1).
+  const dividerNames = Array.from({ length: dividers }, (_, i) => `divider${i + 1}`);
   const y = positions([
     ['endWall1.outerTop', outerFace], ['endWall1.innerTop', wallTop], ['endWall1.base', innerFace],
-    ['divider1.base1', floorLength], ['divider1.top1', innerFace], ['divider1.top2', dividerTop], ['divider1.base2', innerFace],
-    ['divider2.base1', floorLength], ['divider2.top1', innerFace], ['divider2.top2', dividerTop], ['divider2.base2', innerFace],
-    ['endWall2.base', floorLength], ['endWall2.innerTop', innerFace], ['endWall2.outerTop', wallTop], ['sheet.end', outerFace],
+    ...dividerNames.flatMap((divider, i) => [
+      [`${divider}.base1`, floorLength(i)], [`${divider}.top1`, innerFace], [`${divider}.top2`, dividerTop], [`${divider}.base2`, innerFace],
+    ]),
+    ['endWall2.base', floorLength(dividers)], ['endWall2.innerTop', innerFace], ['endWall2.outerTop', wallTop], ['sheet.end', outerFace],
   ]);
   // Fold positions across the Width (x), from the left edge of the Sheet.
   const x = positions([
@@ -68,7 +115,7 @@ export function generateTemplate(inputs) {
     acrossFloor('valley', 'end-wall', y[`${wall}.innerTop`]);
     acrossFloor('mountain', 'end-wall', y[`${wall}.base`]);
   }
-  for (const divider of ['divider1', 'divider2']) {
+  for (const divider of dividerNames) {
     acrossFloor('mountain', 'divider', y[`${divider}.base1`]);
     acrossFloor('valley', 'divider', y[`${divider}.top1`]);
     acrossFloor('valley', 'divider', y[`${divider}.top2`]);
@@ -77,13 +124,13 @@ export function generateTemplate(inputs) {
 
   // Side Walls run the full Length, starting one Wall-top before Compartment 1
   // (they reach the box's end wall) and joined to the floor only beside
-  // Compartment 1. See ADR 0001.
+  // Compartment 1; with a single Compartment that is the whole floor. See ADR 0001.
   const sheetWidth = x['sheet.end'];
   const sheetLength = y['sheet.end'];
   // The floor's mid-surface meets the End Wall at WALL_TOP - t/2 from the box's end.
   const stripStart = y['endWall1.base'] - (WALL_TOP - t / 2);
   const stripEnd = stripStart + length;
-  const compartment1End = y['divider1.base1'];
+  const compartment1End = dividers ? y['divider1.base1'] : y['endWall2.base'];
   const waste = [];
   for (const side of ['sideWall1', 'sideWall2']) {
     const base = x[`${side}.base`];
@@ -108,7 +155,7 @@ export function generateTemplate(inputs) {
     sheet: { width: sheetWidth, length: sheetLength },
     lines,
     waste,
-    steps: foldingSteps(lines),
+    steps: foldingSteps(lines, compartments.length),
     measurements: {
       x: measure([0, sheetWidth, ...lines.flatMap((l) => [l.x1, l.x2])]),
       y: measure([0, sheetLength, ...lines.flatMap((l) => [l.y1, l.y2])]),
@@ -143,10 +190,10 @@ function positions(steps) {
   return out;
 }
 
-function foldingSteps(lines) {
+function foldingSteps(lines, compartmentCount) {
   const ids = (keep) => lines.filter(keep).map((l) => l.id);
   const isFold = (l) => l.kind !== 'cut';
-  return [
+  const steps = [
     {
       title: 'Mark the lines',
       text: 'On the side that becomes the outside of the Insert, mark every measurement along the top and left edges, then draw each line straight across with a ruler.',
@@ -174,8 +221,12 @@ function foldingSteps(lines) {
     },
     {
       title: 'Fold the Side Walls',
-      text: 'Raise each Side Wall on its Mountain Fold beside Compartment 1, then fold both Valley Folds so it becomes a hollow 5 mm wall. Beside Compartments 2 and 3 it stands free, held by the End Walls and the box.',
+      text: compartmentCount === 1
+        ? 'Raise each Side Wall on its Mountain Fold along the Compartment, then fold both Valley Folds so it becomes a hollow 5 mm wall.'
+        : 'Raise each Side Wall on its Mountain Fold beside Compartment 1, then fold both Valley Folds so it becomes a hollow 5 mm wall. Beside the other Compartments it stands free, held by the End Walls and the box.',
       lineIds: ids((l) => l.part === 'side-wall' && isFold(l)),
     },
   ];
+  // With a single Compartment there are no Dividers to fold.
+  return steps.filter((step) => step.lineIds.length > 0);
 }

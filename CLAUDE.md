@@ -2,6 +2,10 @@
 
 This is a personal project of Iwan Lemmens, not a Standaard Uitgeverij project. Don't attribute it to, or brand it as, the company.
 
+## Language
+
+This is an English-only project. Write everything in English: replies to the user, code, comments, UI text, docs, commit messages, issues and PRs. Do this even when the user writes in another language, such as Dutch.
+
 ## Agent skills
 
 ### Issue tracker

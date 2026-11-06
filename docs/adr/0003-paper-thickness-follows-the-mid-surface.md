@@ -9,10 +9,10 @@ The Insert's outer faces must match the entered Length × Width × Insert Height
 - each Compartment's floor: c + t
 - the floor across the Width: W − 10 + t
 
-The Sheet comes out 8t shorter and 4t narrower than for ideal paper.
+With three Compartments the Sheet comes out 8t shorter and 4t narrower than for ideal paper; in general, (2 + 2n)t shorter for n Compartments.
 
 ## Consequences
 
-- A thickness of 0 is accepted as ideal paper and gives the plain formula (Length + 8h) × (Width + 4h).
+- A thickness of 0 is accepted as ideal paper and gives the plain formula (Length + 2h(n + 1)) × (Width + 4h) for n Compartments: (Length + 8h) × (Width + 4h) for three.
 - The Insert Height must exceed the paper thickness, or the inner faces would have no length.
 - Do not "correct" this to make the Sheet grow with thickness; the outer size would then come out too big.

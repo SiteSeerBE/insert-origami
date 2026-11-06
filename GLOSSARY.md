@@ -9,7 +9,7 @@ The finished paper tray that sits inside a board game box, made from one connect
 _Avoid_: Tray, organizer
 
 **Length**:
-The box interior dimension, as entered by the user, along which the three Compartments lie. Not necessarily the longer side.
+The box interior dimension, as entered by the user, along which the Compartments lie. Not necessarily the longer side.
 _Avoid_: Depth, long side
 
 **Width**:
@@ -21,8 +21,16 @@ How tall the finished Insert stands. The user chooses it, leaving room above for
 _Avoid_: Box height, depth
 
 **Compartment**:
-One of the three open cells of the Insert, lying one after another along the box's length.
+One of the open cells of the Insert, lying one after another along the Length. An Insert has one or more; the user chooses how many.
 _Avoid_: Slot, section, bin
+
+**Compartment Length**:
+The clear inside length of one Compartment along the Length, between the faces of the Walls or Dividers on either side. At least 10 mm.
+_Avoid_: Compartment size, compartment depth
+
+**Remaining Space**:
+The part of the Length not yet given to a Compartment, once both End Walls and every Divider for the chosen number of Compartments are taken off. The Insert fills the box only when it is 0; below 0 the Compartments don't fit.
+_Avoid_: Budget, leftover, slack
 
 **Pleat**:
 A raised, hollow ridge folded into the sheet: up, a flat top of fixed width, and back down.

@@ -1,10 +1,15 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { generateTemplate } from '../src/template.js';
+import { generateTemplate, remainingSpace, equalSplit } from '../src/template.js';
 
-const input = (overrides = {}) => ({
-  length: 290, width: 290, insertHeight: 40, paperThickness: 0, ...overrides,
-});
+// n Compartments of exactly equal length, filling the Length.
+const equal = (length, n = 3) => Array(n).fill((length - 10 - 10 * (n - 1)) / n);
+
+// Box values plus Compartments; three equal ones fill the Length unless given.
+const input = (overrides = {}) => {
+  const box = { length: 290, width: 290, insertHeight: 40, paperThickness: 0, ...overrides };
+  return { compartments: equal(box.length), ...box };
+};
 
 test('Sheet is (Length + 8h) x (Width + 4h) for paper of zero thickness', () => {
   const t = generateTemplate(input());
@@ -23,9 +28,47 @@ const errorsFor = (overrides) => {
   return t.errors;
 };
 
-test('Length must leave room for three Compartments (> 30mm)', () => {
-  assert.ok(errorsFor({ length: 30 }).length);
-  assert.equal(generateTemplate(input({ length: 30.5 })).ok, true);
+test('Length must leave room for one 10mm Compartment (at least 20mm)', () => {
+  assert.ok(errorsFor({ length: 19.9, compartments: [9.9] }).length);
+  assert.equal(generateTemplate(input({ length: 20, compartments: [10] })).ok, true);
+});
+
+test('Each Compartment Length must be at least 10mm', () => {
+  const errors = errorsFor({ length: 79.9, compartments: [30, 9.9, 10] });
+  assert.deepEqual(errors.compartments, [null, 'Must be at least 10 mm.', null]);
+  assert.equal(generateTemplate(input({ length: 80, compartments: [30, 10, 10] })).ok, true);
+});
+
+test('An Insert needs at least one Compartment', () => {
+  assert.ok(errorsFor({ compartments: [] }).compartmentCount);
+});
+
+test('Remaining Space is the Length minus End Walls, Dividers and Compartments', () => {
+  assert.equal(remainingSpace(290, [100, 80]), 290 - 10 - 10 - 180);
+  assert.equal(remainingSpace(290, [0, 0, 0]), 290 - 10 - 20);
+  assert.equal(remainingSpace(100, [90]), 0);
+});
+
+test('The Template needs a Remaining Space of 0, within 0.05mm', () => {
+  assert.match(errorsFor({ compartments: [100, 80, 79.9] }).remainingSpace, /0\.1 mm .*still to place/);
+  assert.match(errorsFor({ compartments: [100, 80, 80.1] }).remainingSpace, /0\.1 mm too long/);
+  assert.equal(generateTemplate(input({ compartments: [100, 80, 79.96] })).ok, true);
+  assert.equal(generateTemplate(input({ compartments: [100, 80, 80.04] })).ok, true);
+});
+
+test('Remaining Space is only judged once the Length and every Compartment are valid', () => {
+  assert.equal(errorsFor({ length: NaN, compartments: [100] }).remainingSpace, undefined);
+  assert.equal(errorsFor({ compartments: [100, 5] }).remainingSpace, undefined);
+});
+
+test('Equal split fills the Length in 0.1mm steps, the last Compartment taking the difference', () => {
+  assert.deepEqual(equalSplit(290, 3), [86.7, 86.7, 86.6]);
+  assert.deepEqual(equalSplit(330, 3), [100, 100, 100]);
+  assert.deepEqual(equalSplit(290.25, 3), [86.8, 86.8, 86.65]);
+  assert.deepEqual(equalSplit(100, 1), [90]);
+  for (const [length, n] of [[290, 3], [271.3, 7], [123.45, 2]]) {
+    assert.ok(Math.abs(remainingSpace(length, equalSplit(length, n))) < 1e-9);
+  }
 });
 
 test('Width must exceed the two 5mm Side Walls (> 10mm)', () => {
@@ -51,7 +94,7 @@ test('A missing value is reported on its own field only', () => {
 });
 
 test('Every invalid field is reported at once', () => {
-  const errors = errorsFor({ length: 10, width: 5 });
+  const errors = errorsFor({ length: 10, width: 5, compartments: [10] });
   assert.deepEqual(Object.keys(errors).sort(), ['length', 'width']);
 });
 
@@ -83,12 +126,57 @@ test('End Wall and Divider folds span the floor between the Side Walls (Width - 
   }
 });
 
-test('The three Compartments are equal', () => {
-  const t = generateTemplate(input({ length: 290 }));
+// Floor lengths between neighbouring base folds: [wall, div up, div down, ..., wall].
+const compartmentFloors = (t) => {
   const bases = t.lines.filter((l) => l.kind === 'mountain' && across(l)).map((l) => l.y1).sort((a, b) => a - b);
-  // mountain bases: [wall, div1 up, div1 down, div2 up, div2 down, wall]
-  const compartments = [bases[1] - bases[0], bases[3] - bases[2], bases[5] - bases[4]];
-  for (const c of compartments) assert.ok(Math.abs(c - 260 / 3) < 1e-9, `got ${c}`);
+  const floors = [];
+  for (let i = 0; i < bases.length; i += 2) floors.push(bases[i + 1] - bases[i]);
+  return floors;
+};
+
+test('Each Compartment gets its own length, with a Divider between neighbours', () => {
+  const t = generateTemplate(input({ length: 330, compartments: [150, 50, 30, 60] }));
+  assert.deepEqual(compartmentFloors(t), [150, 50, 30, 60]);
+  assert.equal(t.lines.filter((l) => l.part === 'divider').length, 3 * 4);
+  // Each End Wall and each Divider takes 2 Insert Heights of paper: 330 + (2 + 3) * 2 * 40.
+  assert.equal(t.sheet.length, 730);
+});
+
+test('The last Compartment absorbs the tolerated Remaining Space, so the outer size stays exact', () => {
+  const t = generateTemplate(input({ compartments: [100, 80, 79.96] }));
+  assert.ok(Math.abs(compartmentFloors(t)[2] - 80) < 1e-9);
+  assert.ok(Math.abs(t.sheet.length - (290 + 8 * 40)) < 1e-9);
+});
+
+// One Compartment: 200 x 150 box, 30mm Insert, ideal paper. Compartment 190mm.
+const single = () => generateTemplate(input({ length: 200, width: 150, insertHeight: 30, compartments: [190] }));
+
+test('A single Compartment has no Dividers', () => {
+  const t = single();
+  assert.equal(t.ok, true);
+  assert.equal(t.lines.filter((l) => l.part === 'divider').length, 0);
+  assert.deepEqual(t.sheet, { width: 270, length: 320 });
+});
+
+test('With a single Compartment the Side Walls are folded to the floor along its full length', () => {
+  const bases = single().lines.filter((l) => l.kind === 'mountain' && along(l));
+  for (const l of bases) assert.deepEqual(span(l.y1, l.y2), [65, 255]);
+});
+
+test('With a single Compartment only the corners are Waste', () => {
+  const sorted = [...single().waste].sort((a, b) => a.x - b.x || a.y - b.y);
+  assert.deepEqual(sorted, [
+    { x: 0, y: 0, width: 65, height: 60 },
+    { x: 0, y: 260, width: 65, height: 60 },
+    { x: 205, y: 0, width: 65, height: 60 },
+    { x: 205, y: 260, width: 65, height: 60 },
+  ]);
+});
+
+test('With a single Compartment there is no Divider step', () => {
+  const titles = single().steps.map((s) => s.title);
+  assert.ok(!titles.includes('Fold the Dividers'));
+  assert.ok(titles.includes('Fold the Side Walls'));
 });
 
 const along = (line) => line.x1 === line.x2;
@@ -109,7 +197,7 @@ test('Side Walls are Pleats along the Length, folded to the floor only beside Co
   ]);
 });
 
-test('Corner squares and the paper beside Compartments 2 and 3 are waste', () => {
+test('Corner squares and the paper beside the later Compartments are waste', () => {
   const { waste } = example();
   const sorted = [...waste].sort((a, b) => a.x - b.x || a.y - b.y);
   assert.deepEqual(sorted, [
@@ -157,17 +245,19 @@ function pieces(template) {
 
 test('Cuts never split the Insert: it stays one piece and only waste comes away', () => {
   const sizes = [
-    { length: 31, width: 11, insertHeight: 1 },
-    { length: 330, width: 200, insertHeight: 40 },
-    { length: 290, width: 290, insertHeight: 40 },
-    { length: 120, width: 300, insertHeight: 80 },
-    { length: 500, width: 60, insertHeight: 15 },
-    { length: 75.5, width: 42.3, insertHeight: 63.7 },
+    { length: 20, width: 11, insertHeight: 2, compartments: [10] },
+    { length: 60, width: 11, insertHeight: 2, compartments: [10, 10, 10] },
+    { length: 330, width: 200, insertHeight: 40, compartments: equal(330) },
+    { length: 290, width: 290, insertHeight: 40, compartments: equal(290, 1) },
+    { length: 290, width: 290, insertHeight: 40, compartments: [110, 40, 60, 40] },
+    { length: 120, width: 300, insertHeight: 80, compartments: equal(120, 2) },
+    { length: 500, width: 60, insertHeight: 15, compartments: equal(500, 8) },
+    { length: 75.5, width: 42.3, insertHeight: 63.7, compartments: equal(75.5, 2) },
   ];
   for (const size of sizes) {
     for (const paperThickness of [0, 0.1, 0.35, 1]) {
       const t = generateTemplate({ ...size, paperThickness });
-      if (!t.ok) continue;
+      assert.equal(t.ok, true, JSON.stringify(t.errors));
       const found = pieces(t);
       const insertPieces = found.filter((p) => p.insert > 0);
       assert.equal(insertPieces.length, 1, `Insert split into ${insertPieces.length} pieces for ${JSON.stringify({ ...size, paperThickness })}`);
@@ -239,7 +329,7 @@ test('Chained Measurements always add up exactly to the Baseline Measurements', 
     { length: 99.9, width: 45.45, insertHeight: 18.75, paperThickness: 0.15 },
   ];
   for (const size of sizes) {
-    const t = generateTemplate(size);
+    const t = generateTemplate({ ...size, compartments: equal(size.length) });
     for (const axis of [t.measurements.x, t.measurements.y]) {
       let total = 0;
       for (const m of axis) {
@@ -258,8 +348,8 @@ test('Folding steps come in a fixed order', () => {
 });
 
 test('Every line belongs to a step, and every step has lines', () => {
-  for (const paperThickness of [0, 0.35]) {
-    const t = generateTemplate(input({ paperThickness }));
+  for (const [paperThickness, n] of [[0, 3], [0.35, 3], [0, 1], [0.35, 2]]) {
+    const t = generateTemplate(input({ paperThickness, compartments: equal(290, n) }));
     const used = new Set(t.steps.flatMap((s) => s.lineIds));
     for (const line of t.lines) assert.ok(used.has(line.id), `line ${line.id} is in no step`);
     for (const step of t.steps) assert.ok(step.lineIds.length > 0, `${step.title} has no lines`);
