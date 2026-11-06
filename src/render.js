@@ -19,6 +19,13 @@ export function renderTemplate(template) {
     'aria-label': `Template for a ${fmt(width)} by ${fmt(length)} mm Sheet`,
   });
   svg.append(el('rect', { class: 'sheet-edge', x: 0, y: 0, width, height: length }));
+  for (const line of template.lines) {
+    svg.append(el('line', {
+      class: `line line-${line.kind}`,
+      'data-line': line.id,
+      x1: line.x1, y1: line.y1, x2: line.x2, y2: line.y2,
+    }));
+  }
   return svg;
 }
 
