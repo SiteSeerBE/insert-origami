@@ -193,3 +193,35 @@ test('Baseline Measurements are shown in whole millimetres, never more than 0.5m
   const ideal = generateTemplate(input({ length: 290, width: 213.7, insertHeight: 37.3 }));
   assert.ok(ideal.measurements.y.some((m) => m.display === 166));
 });
+
+// Paper is conserved along its mid-surface. With 1mm card and the Insert's
+// outer size fixed, each panel's flat length becomes:
+//   Wall outer face h - t/2 = 39.5, Wall top 5 - t = 4, inner faces h - t = 39,
+//   Compartment floor c + t = 101, Divider top 10 - t = 9, floor across W - 10 + t = 191.
+const thick = () => generateTemplate(input({ length: 330, width: 200, insertHeight: 40, paperThickness: 1 }));
+
+test('Thick paper moves the folds so the outer size stays as entered', () => {
+  const t = thick();
+  assert.deepEqual(t.measurements.x.map((m) => m.position), [0, 39.5, 43.5, 82.5, 273.5, 312.5, 316.5, 356]);
+  const acrossFolds = t.lines.filter((l) => isFold(l) && across(l)).map((l) => l.y1).sort((a, b) => a - b);
+  assert.deepEqual(acrossFolds, [
+    39.5, 43.5, 82.5,
+    183.5, 222.5, 231.5, 270.5,
+    371.5, 410.5, 419.5, 458.5,
+    559.5, 598.5, 602.5,
+  ]);
+});
+
+test('Thick paper needs a smaller Sheet: 8 thicknesses shorter, 4 narrower', () => {
+  assert.deepEqual(thick().sheet, { width: 356, length: 642 });
+});
+
+test('Side Wall strip still spans the full Length with thick paper', () => {
+  const strip = thick().lines.filter((l) => l.kind === 'valley' && along(l));
+  for (const l of strip) assert.deepEqual(span(l.y1, l.y2), [78, 408]);
+});
+
+test('Insert Height must exceed the paper thickness', () => {
+  assert.ok(errorsFor({ insertHeight: 0.5, paperThickness: 0.5 }).insertHeight);
+  assert.equal(generateTemplate(input({ insertHeight: 0.6, paperThickness: 0.5 })).ok, true);
+});

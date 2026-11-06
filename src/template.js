@@ -20,6 +20,8 @@ function validate(inputs) {
   }
   if (!errors.insertHeight && insertHeight <= 0) {
     errors.insertHeight = 'Must be more than 0 mm.';
+  } else if (!errors.insertHeight && !errors.paperThickness && insertHeight <= paperThickness) {
+    errors.insertHeight = 'Must be more than the paper thickness.';
   }
   if (!errors.paperThickness && (paperThickness < 0 || paperThickness >= 2)) {
     errors.paperThickness = 'Must be between 0 and 2 mm.';
@@ -31,20 +33,30 @@ export function generateTemplate(inputs) {
   const errors = validate(inputs);
   if (Object.keys(errors).length) return { ok: false, errors };
 
-  const { length, width, insertHeight: h } = inputs;
+  const { length, width, insertHeight: h, paperThickness: t } = inputs;
   const compartment = (length - 2 * WALL_TOP - 2 * DIVIDER_TOP) / 3;
+
+  // Flat length of each panel. Paper is conserved along its mid-surface, so
+  // with the Insert's outer size fixed every 90-degree fold saves a little
+  // paper (as with a sheet-metal bend). With t = 0 these are the plain sizes.
+  const outerFace = h - t / 2; // stands on the box floor, reaches the top
+  const wallTop = WALL_TOP - t;
+  const innerFace = h - t; // between the floor and the top layer
+  const dividerTop = DIVIDER_TOP - t;
+  const floorLength = compartment + t;
+  const floorWidth = width - 2 * WALL_TOP + t;
 
   // Fold positions along the Length (y), from the top edge of the Sheet.
   const y = positions([
-    ['endWall1.outerTop', h], ['endWall1.innerTop', WALL_TOP], ['endWall1.base', h],
-    ['divider1.base1', compartment], ['divider1.top1', h], ['divider1.top2', DIVIDER_TOP], ['divider1.base2', h],
-    ['divider2.base1', compartment], ['divider2.top1', h], ['divider2.top2', DIVIDER_TOP], ['divider2.base2', h],
-    ['endWall2.base', compartment], ['endWall2.innerTop', h], ['endWall2.outerTop', WALL_TOP], ['sheet.end', h],
+    ['endWall1.outerTop', outerFace], ['endWall1.innerTop', wallTop], ['endWall1.base', innerFace],
+    ['divider1.base1', floorLength], ['divider1.top1', innerFace], ['divider1.top2', dividerTop], ['divider1.base2', innerFace],
+    ['divider2.base1', floorLength], ['divider2.top1', innerFace], ['divider2.top2', dividerTop], ['divider2.base2', innerFace],
+    ['endWall2.base', floorLength], ['endWall2.innerTop', innerFace], ['endWall2.outerTop', wallTop], ['sheet.end', outerFace],
   ]);
   // Fold positions across the Width (x), from the left edge of the Sheet.
   const x = positions([
-    ['sideWall1.outerTop', h], ['sideWall1.innerTop', WALL_TOP], ['sideWall1.base', h],
-    ['sideWall2.base', width - 2 * WALL_TOP], ['sideWall2.innerTop', h], ['sideWall2.outerTop', WALL_TOP], ['sheet.end', h],
+    ['sideWall1.outerTop', outerFace], ['sideWall1.innerTop', wallTop], ['sideWall1.base', innerFace],
+    ['sideWall2.base', floorWidth], ['sideWall2.innerTop', innerFace], ['sideWall2.outerTop', wallTop], ['sheet.end', outerFace],
   ]);
 
   const lines = [];
@@ -68,7 +80,8 @@ export function generateTemplate(inputs) {
   // Compartment 1. See ADR 0001.
   const sheetWidth = x['sheet.end'];
   const sheetLength = y['sheet.end'];
-  const stripStart = y['endWall1.base'] - WALL_TOP;
+  // The floor's mid-surface meets the End Wall at WALL_TOP - t/2 from the box's end.
+  const stripStart = y['endWall1.base'] - (WALL_TOP - t / 2);
   const stripEnd = stripStart + length;
   const compartment1End = y['divider1.base1'];
   const waste = [];
