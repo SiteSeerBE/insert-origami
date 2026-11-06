@@ -59,3 +59,15 @@ main { display: grid; gap: 24px; grid-template-columns: minmax(240px, 300px) 1fr
 .waste { fill: url(#waste-hatch); }
 .waste-hatch { stroke: var(--border); stroke-width: 2; }
 .legend-waste { display: inline-block; width: 22px; height: 14px; border: 1px solid var(--border); background: repeating-linear-gradient(45deg, var(--border) 0 2px, transparent 2px 6px); }
+
+.dim-line { stroke: var(--muted); stroke-width: 0.8; vector-effect: non-scaling-stroke; }
+.dim-arrow { fill: var(--muted); }
+.dim-label { fill: var(--fg); font-family: system-ui, sans-serif; }
+
+.measurements h2 { font-size: 1.1em; margin: 20px 0 4px; }
+.measurement-tables { display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start; }
+.measurement-tables table { border-collapse: collapse; min-width: 220px; }
+.measurement-tables caption { text-align: left; font-weight: 600; padding-bottom: 6px; }
+.measurement-tables td { padding: 3px 10px 3px 0; border-bottom: 1px solid var(--border); font-variant-numeric: tabular-nums; }
+.measurement-tables td.mm { text-align: right; font-weight: 600; }
+.measurement-tables label { display: inline-flex; gap: 6px; align-items: center; }

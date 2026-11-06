@@ -96,7 +96,22 @@ export function generateTemplate(inputs) {
     compartmentLength: compartment,
     lines,
     waste,
+    measurements: {
+      x: measure([0, sheetWidth, ...lines.flatMap((l) => [l.x1, l.x2])]),
+      y: measure([0, sheetLength, ...lines.flatMap((l) => [l.y1, l.y2])]),
+    },
   };
+}
+
+// Baseline Measurements: each distinct position, at full precision and rounded
+// to whole mm for display. Only the final position is rounded, so rounding
+// never accumulates.
+function measure(values) {
+  const distinct = [];
+  for (const v of [...values].sort((a, b) => a - b)) {
+    if (!distinct.length || v - distinct[distinct.length - 1] > 1e-9) distinct.push(v);
+  }
+  return distinct.map((position) => ({ position, display: Math.round(position) }));
 }
 
 // Turns [name, distance from previous] pairs into absolute positions by name.

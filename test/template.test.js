@@ -174,3 +174,22 @@ test('Cuts never split the Insert: it stays one piece and only waste comes away'
     }
   }
 });
+
+test('Baseline Measurements list every line position from the top-left corner, Sheet edges included', () => {
+  const { measurements } = example();
+  assert.deepEqual(measurements.x.map((m) => m.display), [0, 40, 45, 85, 275, 315, 320, 360]);
+  assert.deepEqual(measurements.y.map((m) => m.display), [
+    0, 40, 45, 80, 85, 185, 225, 235, 275, 375, 410, 415, 425, 465, 565, 605, 610, 650,
+  ]);
+});
+
+test('Baseline Measurements are shown in whole millimetres, never more than 0.5mm off', () => {
+  const t = generateTemplate(input({ length: 290, width: 213.7, insertHeight: 37.3, paperThickness: 0.35 }));
+  for (const m of [...t.measurements.x, ...t.measurements.y]) {
+    assert.ok(Number.isInteger(m.display), `${m.display} is not whole`);
+    assert.ok(Math.abs(m.display - m.position) <= 0.5, `${m.display} vs ${m.position}`);
+  }
+  // 290 box: Compartment 1 ends at 2*37.3 + 5 + 86.67 = 166.27 (ideal paper)
+  const ideal = generateTemplate(input({ length: 290, width: 213.7, insertHeight: 37.3 }));
+  assert.ok(ideal.measurements.y.some((m) => m.display === 166));
+});

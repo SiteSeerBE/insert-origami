@@ -34,7 +34,27 @@ function update() {
   if (!template.ok) return;
   sheetSize.textContent = `${fmt(template.sheet.width)} × ${fmt(template.sheet.length)} mm`;
   drawing.replaceChildren(renderTemplate(template));
+  fillTable('measure-x', template.measurements.x);
+  fillTable('measure-y', template.measurements.y);
 }
 
 form.addEventListener('input', update);
 update();
+
+function fillTable(id, measurements) {
+  const rows = measurements.map((m, i) => {
+    const tr = document.createElement('tr');
+    const tick = document.createElement('td');
+    const label = document.createElement('label');
+    const box = document.createElement('input');
+    box.type = 'checkbox';
+    label.append(box, `Mark ${i + 1}`);
+    tick.append(label);
+    const mm = document.createElement('td');
+    mm.className = 'mm';
+    mm.textContent = `${m.display} mm`;
+    tr.append(tick, mm);
+    return tr;
+  });
+  document.getElementById(id).replaceChildren(...rows);
+}
