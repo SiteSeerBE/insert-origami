@@ -1,3 +1,7 @@
+## Project context
+
+This is a personal project of Iwan Lemmens, not a Standaard Uitgeverij project. Don't attribute it to, or brand it as, the company.
+
 ## Agent skills
 
 ### Issue tracker
