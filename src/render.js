@@ -1,9 +1,9 @@
-// Turns a Template description into an inline SVG. The drawing is a guide, not
-// a pattern to trace: the user copies the measurements, not the picture.
+// Turns a Template description into an inline SVG. The drawing is not to scale
+// for tracing: the user copies the measurements, not the picture.
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
-export function el(name, attrs = {}, children = []) {
+function el(name, attrs = {}, children = []) {
   const node = document.createElementNS(SVG_NS, name);
   for (const [k, v] of Object.entries(attrs)) node.setAttribute(k, v);
   for (const child of children) node.append(typeof child === 'string' ? document.createTextNode(child) : child);
@@ -11,6 +11,15 @@ export function el(name, attrs = {}, children = []) {
 }
 
 export const fmt = (mm) => String(Math.round(mm));
+
+// Emphasises the given lines and fades the rest; pass an empty list to reset.
+export function highlightLines(svg, lineIds) {
+  const ids = new Set(lineIds.map(String));
+  svg.classList.toggle('highlighting', ids.size > 0);
+  for (const line of svg.querySelectorAll('[data-line]')) {
+    line.classList.toggle('highlight', ids.has(line.dataset.line));
+  }
+}
 
 export function renderTemplate(template, { style = 'baseline' } = {}) {
   const { width, length } = template.sheet;

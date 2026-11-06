@@ -48,6 +48,10 @@ _Avoid_: Separator, partition
 The rectangle of paper, cut to the exact size the app specifies from larger stock, that becomes the Insert.
 _Avoid_: Paper, blank, stock
 
+**Waste**:
+The parts of the Sheet that Cuts remove and that never become part of the Insert: the corners and the paper beside the free Side Walls.
+_Avoid_: Scrap, offcut
+
 **Cut**:
 A line on the Template along which the Sheet is cut through. Drawn solid.
 _Avoid_: Slit, incision

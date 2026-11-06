@@ -1,12 +1,11 @@
-import { generateTemplate } from './template.js';
-import { renderTemplate, fmt } from './render.js';
+import { generateTemplate, INPUT_FIELDS } from './template.js';
+import { renderTemplate, highlightLines, fmt } from './render.js';
 
 const form = document.getElementById('inputs');
 const sheetSize = document.getElementById('sheet-size');
 const drawing = document.getElementById('drawing');
 const result = document.getElementById('result');
 const invalid = document.getElementById('invalid');
-const FIELDS = ['length', 'width', 'insertHeight', 'paperThickness'];
 const STYLE_KEY = 'insert-origami.measurementStyle';
 const explainer = document.getElementById('measurements-explainer');
 const EXPLAIN = {
@@ -41,7 +40,7 @@ for (const radio of document.querySelectorAll('input[name="measurementStyle"]'))
 }
 
 function showErrors(errors) {
-  for (const name of FIELDS) {
+  for (const name of INPUT_FIELDS) {
     const message = errors[name] ?? '';
     document.getElementById(`${name}-error`).textContent = message;
     form.elements.namedItem(name).setAttribute('aria-invalid', String(Boolean(message)));
@@ -59,7 +58,8 @@ function readInputs() {
 }
 
 function update() {
-  const template = generateTemplate(readInputs());
+  const inputs = readInputs();
+  const template = generateTemplate(inputs);
   showErrors(template.ok ? {} : template.errors);
   result.hidden = !template.ok;
   invalid.hidden = template.ok;
@@ -67,7 +67,7 @@ function update() {
   const size = `${fmt(template.sheet.width)} × ${fmt(template.sheet.length)} mm`;
   sheetSize.textContent = size;
   document.getElementById('materials-sheet').textContent = size;
-  const { length, width, insertHeight, paperThickness } = readInputs();
+  const { length, width, insertHeight, paperThickness } = inputs;
   document.getElementById('print-summary').textContent =
     `for a ${length} × ${width} mm box, ${insertHeight} mm high, ${paperThickness} mm paper`;
   drawing.replaceChildren(renderTemplate(template, { style }));
@@ -105,13 +105,7 @@ function fillSteps(steps) {
     const title = document.createElement('strong');
     title.textContent = step.title;
     li.append(title, step.text);
-    const highlight = (on) => {
-      const svg = drawing.querySelector('svg');
-      svg.classList.toggle('highlighting', on);
-      for (const id of step.lineIds) {
-        svg.querySelector(`[data-line="${id}"]`)?.classList.toggle('highlight', on);
-      }
-    };
+    const highlight = (on) => highlightLines(drawing.querySelector('svg'), on ? step.lineIds : []);
     li.addEventListener('mouseenter', () => highlight(true));
     li.addEventListener('mouseleave', () => highlight(false));
     li.addEventListener('focus', () => highlight(true));

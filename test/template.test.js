@@ -38,8 +38,9 @@ test('Insert Height must be positive', () => {
   assert.ok(errorsFor({ insertHeight: -5 }).insertHeight);
 });
 
-test('Paper thickness must be above 0 and below 2mm', () => {
+test('Paper thickness must be from 0 (ideal paper) up to, but not including, 2mm', () => {
   assert.ok(errorsFor({ paperThickness: -0.1 }).paperThickness);
+  assert.equal(generateTemplate(input({ paperThickness: 0 })).ok, true);
   assert.ok(errorsFor({ paperThickness: 2 }).paperThickness);
   assert.equal(generateTemplate(input({ paperThickness: 1.9 })).ok, true);
 });

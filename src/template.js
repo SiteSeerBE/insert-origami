@@ -4,11 +4,11 @@
 const WALL_TOP = 5;
 const DIVIDER_TOP = 10;
 
-const FIELDS = ['length', 'width', 'insertHeight', 'paperThickness'];
+export const INPUT_FIELDS = ['length', 'width', 'insertHeight', 'paperThickness'];
 
 function validate(inputs) {
   const errors = {};
-  for (const field of FIELDS) {
+  for (const field of INPUT_FIELDS) {
     if (!Number.isFinite(inputs[field])) errors[field] = 'Enter a number.';
   }
   const { length, width, insertHeight, paperThickness } = inputs;
@@ -106,7 +106,6 @@ export function generateTemplate(inputs) {
   return {
     ok: true,
     sheet: { width: sheetWidth, length: sheetLength },
-    compartmentLength: compartment,
     lines,
     waste,
     steps: foldingSteps(lines),
@@ -165,7 +164,7 @@ function foldingSteps(lines) {
     },
     {
       title: 'Fold the End Walls',
-      text: 'At each end, fold the Mountain Fold so the wall rises from the floor, then fold both Valley Folds so the paper runs 5 mm across the top and back down. The outer face stands on the table.',
+      text: 'At each end, fold the Mountain Fold so the wall rises from the floor, then fold both Valley Folds so the paper runs 5 mm across the top and back down. The outer face stands on the box floor.',
       lineIds: ids((l) => l.part === 'end-wall'),
     },
     {
