@@ -18,6 +18,14 @@ export function renderTemplate(template) {
     role: 'img',
     'aria-label': `Template for a ${fmt(width)} by ${fmt(length)} mm Sheet`,
   });
+  svg.append(el('defs', {}, [
+    el('pattern', { id: 'waste-hatch', width: 6, height: 6, patternUnits: 'userSpaceOnUse', patternTransform: 'rotate(45)' }, [
+      el('line', { class: 'waste-hatch', x1: 0, y1: 0, x2: 0, y2: 6 }),
+    ]),
+  ]));
+  for (const w of template.waste) {
+    svg.append(el('rect', { class: 'waste', x: w.x, y: w.y, width: w.width, height: w.height }));
+  }
   svg.append(el('rect', { class: 'sheet-edge', x: 0, y: 0, width, height: length }));
   for (const line of template.lines) {
     svg.append(el('line', {

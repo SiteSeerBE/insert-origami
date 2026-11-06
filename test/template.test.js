@@ -89,3 +89,88 @@ test('The three Compartments are equal', () => {
   const compartments = [bases[1] - bases[0], bases[3] - bases[2], bases[5] - bases[4]];
   for (const c of compartments) assert.ok(Math.abs(c - 260 / 3) < 1e-9, `got ${c}`);
 });
+
+const along = (line) => line.x1 === line.x2;
+const span = (a, b) => [Math.min(a, b), Math.max(a, b)];
+
+test('Side Walls are Pleats along the Length, folded to the floor only beside Compartment 1', () => {
+  const lines = example().lines.filter((l) => isFold(l) && along(l));
+  const actual = lines
+    .map((l) => [l.x1, l.kind, ...span(l.y1, l.y2)])
+    .sort((a, b) => a[0] - b[0]);
+  assert.deepEqual(actual, [
+    // Side Wall strip runs the full Length (330), starting 5mm before Compartment 1
+    [40, 'valley', 80, 410], [45, 'valley', 80, 410],
+    // the base fold exists only beside Compartment 1 (85..185)
+    [85, 'mountain', 85, 185],
+    [275, 'mountain', 85, 185],
+    [315, 'valley', 80, 410], [320, 'valley', 80, 410],
+  ]);
+});
+
+test('Corner squares and the paper beside Compartments 2 and 3 are waste', () => {
+  const { waste } = example();
+  const sorted = [...waste].sort((a, b) => a.x - b.x || a.y - b.y);
+  assert.deepEqual(sorted, [
+    { x: 0, y: 0, width: 85, height: 80 },
+    { x: 0, y: 410, width: 85, height: 240 },
+    { x: 275, y: 0, width: 85, height: 80 },
+    { x: 275, y: 410, width: 85, height: 240 },
+  ]);
+});
+
+// Splits the Sheet into a grid on every line coordinate, joins neighbouring cells
+// unless a Cut runs along their shared edge, and returns the connected pieces.
+function pieces(template) {
+  const { width, length } = template.sheet;
+  const xs = [...new Set([0, width, ...template.lines.flatMap((l) => [l.x1, l.x2])])].sort((a, b) => a - b);
+  const ys = [...new Set([0, length, ...template.lines.flatMap((l) => [l.y1, l.y2])])].sort((a, b) => a - b);
+  const cuts = template.lines.filter((l) => l.kind === 'cut');
+  const cutAlongX = (x, y0, y1) => cuts.some((c) => c.x1 === x && c.x2 === x && span(c.y1, c.y2)[0] <= y0 && span(c.y1, c.y2)[1] >= y1);
+  const cutAlongY = (y, x0, x1) => cuts.some((c) => c.y1 === y && c.y2 === y && span(c.x1, c.x2)[0] <= x0 && span(c.x1, c.x2)[1] >= x1);
+
+  const parent = new Map();
+  const find = (k) => (parent.get(k) === k ? k : (parent.set(k, find(parent.get(k))), parent.get(k)));
+  const key = (i, j) => `${i},${j}`;
+  for (let i = 0; i < xs.length - 1; i++) for (let j = 0; j < ys.length - 1; j++) parent.set(key(i, j), key(i, j));
+  const join = (a, b) => parent.set(find(a), find(b));
+  for (let i = 0; i < xs.length - 1; i++) {
+    for (let j = 0; j < ys.length - 1; j++) {
+      if (i + 1 < xs.length - 1 && !cutAlongX(xs[i + 1], ys[j], ys[j + 1])) join(key(i, j), key(i + 1, j));
+      if (j + 1 < ys.length - 1 && !cutAlongY(ys[j + 1], xs[i], xs[i + 1])) join(key(i, j), key(i, j + 1));
+    }
+  }
+  const inWaste = (i, j) => {
+    const cx = (xs[i] + xs[i + 1]) / 2, cy = (ys[j] + ys[j + 1]) / 2;
+    return template.waste.some((w) => cx > w.x && cx < w.x + w.width && cy > w.y && cy < w.y + w.height);
+  };
+  const groups = new Map();
+  for (const k of parent.keys()) {
+    const [i, j] = k.split(',').map(Number);
+    const root = find(k);
+    if (!groups.has(root)) groups.set(root, { waste: 0, insert: 0 });
+    groups.get(root)[inWaste(i, j) ? 'waste' : 'insert']++;
+  }
+  return [...groups.values()];
+}
+
+test('Cuts never split the Insert: it stays one piece and only waste comes away', () => {
+  const sizes = [
+    { length: 31, width: 11, insertHeight: 1 },
+    { length: 330, width: 200, insertHeight: 40 },
+    { length: 290, width: 290, insertHeight: 40 },
+    { length: 120, width: 300, insertHeight: 80 },
+    { length: 500, width: 60, insertHeight: 15 },
+    { length: 75.5, width: 42.3, insertHeight: 63.7 },
+  ];
+  for (const size of sizes) {
+    for (const paperThickness of [0, 0.1, 0.35, 1]) {
+      const t = generateTemplate({ ...size, paperThickness });
+      if (!t.ok) continue;
+      const found = pieces(t);
+      const insertPieces = found.filter((p) => p.insert > 0);
+      assert.equal(insertPieces.length, 1, `Insert split into ${insertPieces.length} pieces for ${JSON.stringify({ ...size, paperThickness })}`);
+      assert.equal(insertPieces[0].waste, 0, 'waste is still attached to the Insert');
+    }
+  }
+});

@@ -63,11 +63,39 @@ export function generateTemplate(inputs) {
     acrossFloor('mountain', 'divider', y[`${divider}.base2`]);
   }
 
+  // Side Walls run the full Length, starting one Wall-top before Compartment 1
+  // (they reach the box's end wall) and joined to the floor only beside
+  // Compartment 1. See ADR 0001.
+  const sheetWidth = x['sheet.end'];
+  const sheetLength = y['sheet.end'];
+  const stripStart = y['endWall1.base'] - WALL_TOP;
+  const stripEnd = stripStart + length;
+  const compartment1End = y['divider1.base1'];
+  const waste = [];
+  for (const side of ['sideWall1', 'sideWall2']) {
+    const base = x[`${side}.base`];
+    const edge = side === 'sideWall1' ? 0 : sheetWidth;
+    add('valley', 'side-wall', x[`${side}.outerTop`], stripStart, x[`${side}.outerTop`], stripEnd);
+    add('valley', 'side-wall', x[`${side}.innerTop`], stripStart, x[`${side}.innerTop`], stripEnd);
+    add('mountain', 'side-wall', base, y['endWall1.base'], base, compartment1End);
+    // Free the Side Wall from the End Wall at the corner, and from the floor
+    // beyond Compartment 1; then cut off the waste above and below the strip.
+    add('cut', 'side-wall', base, 0, base, y['endWall1.base']);
+    add('cut', 'side-wall', base, compartment1End, base, sheetLength);
+    add('cut', 'side-wall', edge, stripStart, base, stripStart);
+    add('cut', 'side-wall', edge, stripEnd, base, stripEnd);
+    const left = Math.min(edge, base);
+    const stripWidth = Math.abs(base - edge);
+    waste.push({ x: left, y: 0, width: stripWidth, height: stripStart });
+    waste.push({ x: left, y: stripEnd, width: stripWidth, height: sheetLength - stripEnd });
+  }
+
   return {
     ok: true,
-    sheet: { width: x['sheet.end'], length: y['sheet.end'] },
+    sheet: { width: sheetWidth, length: sheetLength },
     compartmentLength: compartment,
     lines,
+    waste,
   };
 }
 
